@@ -1,68 +1,56 @@
-# Sistem Rekomendasi Buku (Book Recommendation System) 📚
+# Book Recommendation System 📚
 
 [![Python](https://img.shields.io/badge/Python-3.x-blue.svg)](https://www.python.org/)
 [![Scikit-learn](https://img.shields.io/badge/scikit--learn-0.24.2-orange.svg)](https://scikit-learn.org/)
 [![Pandas](https://img.shields.io/badge/pandas-1.3.3-blue.svg)](https://pandas.pydata.org/)
 
-Proyek ini bertujuan untuk membangun sistem rekomendasi buku untuk mengatasi masalah *choice overload* yang sering dihadapi pembaca. Dua pendekatan utama digunakan: Content-Based Filtering dan Collaborative Filtering, untuk memberikan rekomendasi yang personal dan relevan.
+A comprehensive book recommendation system developed as a machine learning project. This repository contains the implementation of two distinct recommendation models using the Book-Crossing dataset from Kaggle.
 
----
+## Project Overview
 
-## 📖 Model yang Dikembangkan
+In the vast world of literature, readers often face "choice overload," making it difficult to find books that match their tastes. This project addresses this challenge by building a recommendation engine to provide personalized book suggestions, enhancing user experience and engagement on digital platforms.
 
-Dua jenis model sistem rekomendasi telah dikembangkan dalam proyek ini:
+The primary goal is to develop and compare two popular recommendation techniques:
+1.  **Content-Based Filtering:** Recommends books based on item metadata (e.g., author, publisher).
+2.  **Collaborative Filtering:** Recommends books based on the preferences and rating history of like-minded users.
 
-1.  **Content-Based Filtering**
-    * **Logika:** Merekomendasikan buku berdasarkan kemiripan atribut/metadata buku (penulis dan penerbit).
-    * **Teknik:** Menggunakan `TfidfVectorizer` untuk mengubah teks metadata menjadi vektor dan `Cosine Similarity` untuk mengukur kemiripan antar buku.
+## Features
 
-2.  **Collaborative Filtering**
-    * **Logika:** Merekomendasikan buku berdasarkan preferensi pengguna lain yang memiliki selera serupa (user-based).
-    * **Teknik:** Menggunakan algoritma `K-Nearest Neighbors (KNN)` untuk menemukan "tetangga" terdekat dari seorang pengguna berdasarkan riwayat rating mereka.
+* **Dual-Model Approach**: Implements both Content-Based and Collaborative Filtering to provide robust recommendations.
+* **Content-Based Filtering**:
+    * Utilizes `Book-Author` and `Publisher` as content features.
+    * Employs `TfidfVectorizer` to convert text features into a vector space.
+    * Calculates `Cosine Similarity` to find and recommend similar books.
+* **Collaborative Filtering**:
+    * Uses explicit user ratings (scale 1-10) for training.
+    * Implements the **Singular Value Decomposition (SVD)** algorithm from the `surprise` library to predict user ratings.
+    * Generates top-N recommendations based on the highest predicted ratings.
 
----
+## Dataset
 
-## 📊 Dataset
+This project uses the **Book-Crossing Dataset**, which can be found on Kaggle: [Book Recommendation Dataset](https://www.kaggle.com/datasets/arashnic/book-recommendation-dataset).
 
-Dataset yang digunakan adalah **"Book-Crossings"** yang tersedia di Kaggle.
-* **Sumber:** [Book-Crossings Dataset on Kaggle](https://www.kaggle.com/datasets/arashnic/book-crossing-dataset)
-* **Terdiri dari 3 file:** `Books.csv`, `Ratings.csv`, dan `Users.csv`.
-* **Total Data:** 1.1M+ rating dari 278k+ pengguna untuk 271k+ buku.
+The dataset consists of three files:
+* `Books.csv`: Contains book information such as ISBN, title, author, and publisher.
+* `Users.csv`: Contains user demographic data like ID, location, and age.
+* `Ratings.csv`: Contains user-book interactions, including explicit (1-10) and implicit (0) ratings.
 
----
+## Evaluation
 
-## ⚙️ Teknologi yang Digunakan
+* **Collaborative Filtering (SVD)**: Evaluated using **Root Mean Squared Error (RMSE)** to measure the accuracy of rating predictions. The model achieved an `RMSE` of approximately **1.68**.
+* **Content-Based Filtering**: Evaluated using **Precision@k**, which measures the relevance of the top recommendations. The model achieved a `Precision@5` of **1.0 (100%)** when recommending books by the same author.
 
-* **Python**
-* **Pandas & NumPy** untuk manipulasi data
-* **Matplotlib & Seaborn** untuk visualisasi data
-* **Scikit-learn** untuk pemodelan (`TfidfVectorizer`, `NearestNeighbors`)
-* **Jupyter Notebook** sebagai environment kerja
+## How to Run
 
----
-
-## 🚀 Cara Menjalankan Proyek
-
-1.  **Clone Repositori**
+1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/NAMA_USER_ANDA/NAMA_REPO_ANDA.git](https://github.com/NAMA_USER_ANDA/NAMA_REPO_ANDA.git)
-    cd NAMA_REPO_ANDA
+    git clone <repository-url>
     ```
-
-2.  **Unduh Dataset**
-    * Unduh dataset dari [link Kaggle](https://www.kaggle.com/datasets/arashnic/book-crossing-dataset).
-    * Ekstrak dan letakkan file `Books.csv`, `Ratings.csv`, dan `Users.csv` di dalam folder utama proyek.
-
-3.  **Jalankan Notebook**
-    * Buka dan jalankan file `notebook.ipynb` menggunakan Jupyter Lab atau Google Colab.
-
----
-
-## 📈 Hasil Evaluasi
-
-Model Collaborative Filtering dievaluasi menggunakan metrik **Precision@10**, yang mengukur seberapa relevan 10 item teratas yang direkomendasikan.
-
-* **Metric:** Precision@10
-* **Hasil:** **12.5%**
-
-**Interpretasi:** Dari 10 buku yang direkomendasikan, rata-rata lebih dari 1 buku (1.25 buku) relevan dan kemungkinan besar disukai oleh pengguna, yang merupakan hasil yang baik untuk dataset sebesar ini.
+2.  **Install dependencies:**
+    ```bash
+    pip install pandas numpy matplotlib seaborn scikit-learn surprise
+    ```
+3.  **Download the dataset** from the Kaggle link above and place the `.csv` files in the project root.
+4.  **Run the Jupyter Notebook or Python script:**
+    * Open and run `proyek_rekomendasi.ipynb` in Jupyter.
+    * Or run the script from your terminal: `python proyek_rekomendasi.py`
