@@ -6,10 +6,6 @@
 
 Proyek ini bertujuan untuk membangun sistem rekomendasi buku untuk mengatasi masalah *choice overload* yang sering dihadapi pembaca. Dua pendekatan utama digunakan: Content-Based Filtering dan Collaborative Filtering, untuk memberikan rekomendasi yang personal dan relevan.
 
-**Proyek ini merupakan submission untuk kelas "Belajar Machine Learning untuk Pemula" dari Dicoding.**
-
-> **[➡️ Klik di sini untuk membaca Laporan Proyek Lengkap (laporan_proyek.md)](laporan_proyek.md)**
-
 ---
 
 ## 📖 Model yang Dikembangkan
