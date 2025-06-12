@@ -147,6 +147,16 @@ Model ini bekerja berdasarkan prinsip "pengguna akan menyukai item yang mirip de
 3. _Cosine Similarity_ mengukur sudut kosinus antara dua vektor, yang efektif untuk menentukan kemiripan orientasi (dalam hal ini, kesamaan penulis) tanpa terpengaruh oleh panjang vektor.
 4. Buku-buku dengan skor kemiripan tertinggi akan direkomendasikan.
 
+_Potongan kode penting:_
+
+```python
+# Inisialisasi dan fitting TF-IDF
+tf_idf = TfidfVectorizer(max_features=5000)
+tfidf_matrix = tf_idf.fit_transform(books_for_content['Book-Author'].fillna(''))
+# Hitung cosine similarity (on-the-fly)
+sim_scores = cosine_similarity(book_vector, tfidf_matrix).flatten()
+```
+
 **Kelebihan dan Kekurangan:**
 
 - **Kelebihan**:
@@ -161,18 +171,18 @@ Model ini bekerja berdasarkan prinsip "pengguna akan menyukai item yang mirip de
 **Top-N Recommendation Output:**
 Berikut adalah contoh 10 rekomendasi buku teratas untuk buku _"The Hobbit"_.
 
-|     | Similarity_Score | Book-Title                                                 | Book-Author      |
-| --: | ---------------: | :--------------------------------------------------------- | :--------------- |
-|   0 |           0.2835 | The Two Towers (The Lord of the Rings, Part 2)             | J. R. R. Tolkien |
-|   1 |           0.2835 | The Lord of the Rings                                      | J.R.R. TOLKIEN   |
-|   2 |           0.2835 | The Fellowship of the Ring (The Lord of the Rings, Part 1) | J. R. R. Tolkien |
-|   3 |           0.2835 | The Return of the King (The Lord of the Rings, Part 3)     | J. R. R. Tolkien |
-|   4 |           0.2835 | J.R.R. Tolkien's The Lord of the Rings                     | J.R.R. TOLKIEN   |
-|   5 |           0.2835 | The Silmarillion                                           | J.R.R. TOLKIEN   |
-|   6 |           0.2835 | Unfinished Tales of Numenor and Middle-Earth               | J. R. R. Tolkien |
-|   7 |           0.2835 | The Silmarillion                                           | J. R. R. Tolkien |
-|   8 |           0.2835 | Unfinished Tales of Numenor and Middle-Earth               | J. R. R. Tolkien |
-|   9 |           0.2835 | The Book of Lost Tales, Part 1                             | J. R. R. Tolkien |
+|     | Similarity_Score | Book-Title                                                                                        | Book-Author      |
+| --: | ---------------: | :------------------------------------------------------------------------------------------------ | :--------------- |
+|   0 |           1.0000 | The Lord of the Rings : The Two Towers and the Return of the King(Exerpts)                        | J.R.R. Tolkien   |
+|   1 |           1.0000 | Beowulf: The Monster and the Critics                                                              | J. R. R. Tolkien |
+|   2 |           1.0000 | Histoire de la terre du milieu, tome 1 : Le Livre des contes perdus                               | J.R.R. Tolkien   |
+|   3 |           1.0000 | The Book of Lost Tales, Part Two (The History of Middle-Earth - Volume 2)                         | J. R. R. Tolkien |
+|   4 |           1.0000 | La Silmarillon                                                                                    | J. R. R. Tolkien |
+|   5 |           1.0000 | The English Text of the Ancrene Riwle : Ancrene Wisse, Corpus Christi College Cambridge MS 402... | J R R Tolkien    |
+|   6 |           1.0000 | Old English Exodus                                                                                | J. R. R. Tolkien |
+|   7 |           1.0000 | The Two Towers (Lord of the Rings (Paperback))                                                    | J. R. R. Tolkien |
+|   8 |           1.0000 | Smith of Wootton Major                                                                            | J. R. R. Tolkien |
+|   9 |           1.0000 | The Fellowship of the Ring (Lord of the Rings (Paperback))                                        | J. R. R. Tolkien |
 
 _Tabel 1: Contoh Rekomendasi Content-Based Filtering._
 
@@ -221,20 +231,38 @@ model.compile(
 
 **Top-N Recommendation Output:**
 
+Berikut adalah contoh 10 rekomendasi teratas untuk `User ID: 505`.
+
+**Buku yang pernah diberi rating tinggi oleh User 505:**
+
+|     | Book-Title                                        | Book-Rating |
+| --: | :------------------------------------------------ | ----------: |
+|   0 | The Night Listener                                |           9 |
+|   1 | Organizing from the Inside Out                    |           9 |
+|   2 | Vanished                                          |           8 |
+|   3 | Not a Day Goes By : A Novel                       |           8 |
+|   4 | And Never Let Her Go : Thomas Capano: The Dead... |           8 |
+
+_Tabel 2: Riwayat Rating User 505 sebagai Konteks Rekomendasi._
+
+**Top 10 Rekomendasi Buku:**
+
 |     | Book-Title                                             | Book-Author        | Predicted_Rating |
 | --: | :----------------------------------------------------- | :----------------- | ---------------: |
-|   0 | Harry Potter and the Chamber of Secrets Postcard Book  | J. K. Rowling      |           0.7854 |
-|   1 | The Return of the King (The Lord of the Rings, Part 3) | J.R.R. TOLKIEN     |           0.7800 |
-|   2 | My Sister's Keeper : A Novel (Picoult, Jodi)           | Jodi Picoult       |           0.7757 |
-|   3 | Harry Potter and the Goblet of Fire (Book 4)           | J. K. Rowling      |           0.7751 |
-|   4 | Dilbert: A Book of Postcards                           | Scott Adams        |           0.7747 |
-|   5 | The Time Traveler's Wife                               | Audrey Niffenegger |           0.7733 |
-|   6 | To Kill a Mockingbird                                  | Harper Lee         |           0.7713 |
-|   7 | The Two Towers (The Lord of the Rings, Part 2)         | J. R. R. Tolkien   |           0.7669 |
-|   8 | Harry Potter and the Order of the Phoenix (Book 5)     | J. K. Rowling      |           0.7652 |
-|   9 | East of Eden (Oprah's Book Club)                       | John Steinbeck     |           0.7646 |
+|   0 | The Return of the King (The Lord of the Rings, Part 3) | J.R.R. TOLKIEN     |           0.7825 |
+|   1 | Harry Potter and the Chamber of Secrets Postcard Book  | J. K. Rowling      |           0.7801 |
+|   2 | My Sister's Keeper : A Novel (Picoult, Jodi)           | Jodi Picoult       |           0.7741 |
+|   3 | Harry Potter and the Goblet of Fire (Book 4)           | J. K. Rowling      |           0.7738 |
+|   4 | Dilbert: A Book of Postcards                           | Scott Adams        |           0.7738 |
+|   5 | The Time Traveler's Wife                               | Audrey Niffenegger |           0.7734 |
+|   6 | To Kill a Mockingbird                                  | Harper Lee         |           0.7688 |
+|   7 | The Two Towers (The Lord of the Rings, Part 2)         | J. R. R. Tolkien   |           0.7665 |
+|   8 | Harry Potter and the Order of the Phoenix (Book 5)     | J. K. Rowling      |           0.7646 |
+|   9 | East of Eden (Oprah's Book Club)                       | John Steinbeck     |           0.7634 |
 
-_Tabel 2: Contoh Rekomendasi Collaborative Filtering untuk User 505._
+_Tabel 3: Contoh Rekomendasi Collaborative Filtering untuk User 505._
+
+_Tabel 3: Contoh Rekomendasi Collaborative Filtering untuk User 505._
 
 ### **Perbandingan Solusi**
 
@@ -246,7 +274,7 @@ _Tabel 2: Contoh Rekomendasi Collaborative Filtering untuk User 505._
 | **Kompleksitas**         | Rendah-Sedang           | Tinggi                   |
 | **Interpretasi**         | Mudah                   | Sulit                    |
 
-_Tabel 3: Perbandingan antara Model Content-Based dan Collaborative Filtering._
+_Tabel 4: Perbandingan antara Model Content-Based dan Collaborative Filtering._
 
 Kedua model memiliki peran yang saling melengkapi. **Content-Based Filtering** sangat baik untuk memberikan rekomendasi yang aman dan dapat dijelaskan, terutama untuk item-item baru. Namun, kekuatannya terbatas pada fitur yang ada. Di sisi lain, **Collaborative Filtering** unggul dalam personalisasi dan penemuan (serendipity) karena mampu menangkap selera yang lebih abstrak dari interaksi pengguna. Meskipun lebih kompleks dan menderita masalah _cold-start_, kemampuannya untuk merekomendasikan item lintas genre yang relevan menjadikannya solusi yang lebih kuat untuk meningkatkan keterlibatan pengguna dalam jangka panjang. Untuk sistem rekomendasi yang komprehensif, pendekatan _hybrid_ yang menggabungkan keduanya seringkali menjadi solusi terbaik.
 
@@ -268,6 +296,8 @@ Kedua model memiliki peran yang saling melengkapi. **Content-Based Filtering** s
 
 ### **Hasil Pelatihan & Evaluasi**
 
+Proses pelatihan dikontrol menggunakan _callbacks_ `EarlyStopping` dan `ReduceLROnPlateau` untuk efisiensi.
+
 ![Kurva Pembelajaran Model](./assets/output4.png)
 _Gambar 4: Kurva Pembelajaran Model (RMSE dan Loss) Selama Training._
 
@@ -278,15 +308,15 @@ Hasil metrik akhir model disajikan dalam tabel berikut:
 | Metrik              | Nilai      |
 | :------------------ | :--------- |
 | Training RMSE       | 0.1920     |
-| **Validation RMSE** | **0.2029** |
-| Gap (Val - Train)   | 0.0109     |
+| **Validation RMSE** | **0.2028** |
+| Gap (Val - Train)   | 0.0108     |
 
-_Tabel 4: Hasil Akhir Metrik Model Collaborative Filtering._
+_Tabel 5: Hasil Akhir Metrik Model Collaborative Filtering._
 
 **Interpretasi Hasil:**
 
-- Model mencapai **Validation RMSE sebesar 0.2029** pada data yang belum pernah dilihat sebelumnya. Nilai ini berada pada skala rating yang telah dinormalisasi [0, 1], yang berarti rata-rata kesalahan prediksi model sangat kecil.
-- Selisih (_gap_) antara `Validation RMSE` dan `Training RMSE` hanya **0.0109**, yang mengonfirmasi bahwa model memiliki **kemampuan generalisasi yang sangat baik** dan tidak _overfit_.
+- Model mencapai **Validation RMSE sebesar 0.2028** pada data yang belum pernah dilihat sebelumnya. Nilai ini berada pada skala rating yang telah dinormalisasi [0, 1], yang berarti rata-rata kesalahan prediksi model sangat kecil.
+- Selisih (_gap_) antara `Validation RMSE` dan `Training RMSE` hanya **0.0108**, yang mengonfirmasi bahwa model memiliki **kemampuan generalisasi yang sangat baik** dan tidak _overfit_.
 - Analisis statistik prediksi pada data validasi menunjukkan bahwa model menghasilkan output yang wajar dan stabil (rata-rata prediksi: 0.6460, std: 0.0803).
 
 Kesimpulannya, model _Collaborative Filtering_ yang dibangun sangat akurat dan andal, menjadikannya solusi yang efektif untuk memberikan rekomendasi buku yang dipersonalisasi dan berkualitas tinggi.
