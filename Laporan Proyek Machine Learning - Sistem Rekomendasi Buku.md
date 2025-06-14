@@ -103,33 +103,54 @@ Grafik ini menunjukkan bahwa tidak ada perbedaan drastis dalam cara memberikan r
 
 Tahapan persiapan data dilakukan untuk memastikan data bersih, konsisten, dan siap untuk pemodelan. Berikut adalah proses yang dilakukan secara berurutan:
 
-1.  **Data Cleaning & Preprocessing**:
+1. **Data Cleaning & Preprocessing**:
 
-    - **Penanganan `Year-Of-Publication`**:
-      - **Proses**: Kolom ini diubah menjadi tipe numerik menggunakan `pd.to_numeric(errors='coerce')`, yang secara otomatis mengubah entri non-numerik menjadi `NaN`. Nilai tahun yang tidak valid (0 atau di masa depan) juga diubah menjadi `NaN`. Nilai-nilai `NaN` yang dihasilkan kemudian diisi dengan **median** dari tahun publikasi yang valid.
-      - **Alasan**: Kolom tahun harus berjenis numerik agar dapat diolah secara matematis (misalnya, untuk mencari median atau digunakan sebagai fitur). Menggunakan median untuk imputasi dipilih karena lebih robust (tahan) terhadap nilai ekstrem dibandingkan rata-rata, sehingga tidak menggeser distribusi data secara signifikan.
-    - **Penanganan `Age`**:
-      - **Proses**: Umur yang tidak realistis (\< 5 atau \> 100) diidentifikasi dan diubah menjadi `NaN`. Kemudian, semua nilai `NaN` (termasuk 110.762 nilai kosong awal) diisi dengan **median** umur pengguna.
-      - **Alasan**: Validasi data penting untuk menjaga kualitas dan logika model. Imputasi dengan median adalah strategi yang jauh lebih baik daripada menghapus \~40% data pengguna, yang akan sangat merugikan performa model Collaborative Filtering yang bergantung pada banyaknya data interaksi.
-    - **Penanganan `Publisher` dan `Book-Author`**:
-      - **Proses**: Nilai kosong yang sangat sedikit pada kolom ini diisi dengan string placeholder `"Unknown"`.
-      - **Alasan**: Ini adalah cara sederhana dan efektif untuk menangani data kategorikal yang hilang dalam jumlah kecil tanpa harus kehilangan seluruh baris data, yang mana data ratingnya masih berharga.
+   - **Penanganan `Year-Of-Publication`**:
+     - **Proses**: Kolom ini diubah menjadi tipe numerik menggunakan `pd.to_numeric(errors='coerce')`, yang secara otomatis mengubah entri non-numerik menjadi `NaN`. Nilai tahun yang tidak valid (0 atau di masa depan) juga diubah menjadi `NaN`. Nilai-nilai `NaN` yang dihasilkan kemudian diisi dengan **median** dari tahun publikasi yang valid.
+     - **Alasan**: Kolom tahun harus berjenis numerik agar dapat diolah secara matematis (misalnya, untuk mencari median atau digunakan sebagai fitur). Menggunakan median untuk imputasi dipilih karena lebih robust (tahan) terhadap nilai ekstrem dibandingkan rata-rata, sehingga tidak menggeser distribusi data secara signifikan.
+   - **Penanganan `Age`**:
+     - **Proses**: Umur yang tidak realistis (\< 5 atau \> 100) diidentifikasi dan diubah menjadi `NaN`. Kemudian, semua nilai `NaN` (termasuk 110.762 nilai kosong awal) diisi dengan **median** umur pengguna.
+     - **Alasan**: Validasi data penting untuk menjaga kualitas dan logika model. Imputasi dengan median adalah strategi yang jauh lebih baik daripada menghapus \~40% data pengguna, yang akan sangat merugikan performa model Collaborative Filtering yang bergantung pada banyaknya data interaksi.
+   - **Penanganan `Publisher` dan `Book-Author`**:
+     - **Proses**: Nilai kosong yang sangat sedikit pada kolom ini diisi dengan string placeholder `"Unknown"`.
+     - **Alasan**: Ini adalah cara sederhana dan efektif untuk menangani data kategorikal yang hilang dalam jumlah kecil tanpa harus kehilangan seluruh baris data, yang mana data ratingnya masih berharga.
 
-2.  **Penggabungan dan Finalisasi Data**:
+2. **Penggabungan dan Finalisasi Data**:
 
-    - **Proses**: DataFrame `ratings` dan `books` digabungkan menjadi satu DataFrame final (`df_final`) menggunakan `pd.merge` berdasarkan `ISBN`. Setelah itu, dilakukan penghapusan duplikat berdasarkan interaksi `User-ID` dan `Book-Title`, serta penghapusan baris dengan `Book-Title` atau `Book-Author` yang kosong.
-    - **Alasan**: Penggabungan diperlukan untuk menyatukan data interaksi (rating) dengan metadata item (judul, penulis) dalam satu tempat. Ini penting karena kedua model membutuhkan kombinasi data ini. Deduplikasi memastikan setiap interaksi pengguna-buku bersifat unik untuk menjaga integritas data, dan penghapusan `NaN` pada fitur kunci mencegah error pada saat pemodelan.
+   - **Proses**: DataFrame `ratings` dan `books` digabungkan menjadi satu DataFrame final (`df_final`) menggunakan `pd.merge` berdasarkan `ISBN`. Setelah itu, dilakukan penghapusan duplikat berdasarkan interaksi `User-ID` dan `Book-Title`, serta penghapusan baris dengan `Book-Title` atau `Book-Author` yang kosong.
+   - **Alasan**: Penggabungan diperlukan untuk menyatukan data interaksi (rating) dengan metadata item (judul, penulis) dalam satu tempat. Ini penting karena kedua model membutuhkan kombinasi data ini. Deduplikasi memastikan setiap interaksi pengguna-buku bersifat unik untuk menjaga integritas data, dan penghapusan `NaN` pada fitur kunci mencegah error pada saat pemodelan.
 
-3.  **Persiapan Data untuk Collaborative Filtering**:
+3. **Feature Engineering untuk Content-Based Filtering**
+   Tahap ini secara spesifik mempersiapkan fitur yang akan digunakan oleh model Content-Based Filtering. Karena model ini bekerja berdasarkan kemiripan konten, kita perlu mengubah data tekstual (nama penulis) menjadi format numerik yang dapat diukur kemiripannya.
 
-    - **Filtering**: Dataset difilter untuk hanya menyertakan pengguna dengan \>10 rating dan buku dengan \>5 rating. Rating implisit (nilai 0) juga dihapus. Langkah ini menghasilkan **168,507** interaksi berkualitas tinggi.
-      - **Alasan**: Langkah ini sangat penting untuk mengurangi masalah _sparsity_ (data yang kosong) dan _noise_. Dengan fokus pada pengguna aktif dan buku yang cukup dikenal, model dapat belajar dari pola preferensi yang lebih kuat dan stabil.
-    - **Encoding**: `User-ID` dan `ISBN` diubah menjadi indeks integer yang berurutan.
-      - **Alasan**: Model _deep learning_, khususnya Embedding Layer di Keras/TensorFlow, memerlukan input berupa indeks integer yang berurutan sebagai kategori, bukan ID asli yang acak.
-    - **Normalisasi**: `Book-Rating` (skala 1-10) dinormalisasi ke rentang [0, 1] menggunakan _Min-Max Scaling_.
-      - **Alasan**: Menyamakan skala variabel target (rating) ke rentang yang kecil (0-1) membantu proses training model agar lebih stabil dan konvergen lebih cepat. Ini adalah praktik standar dalam jaringan saraf tiruan.
-    - **Splitting**: Data dibagi menjadi 80% data latih dan 20% data validasi.
-      - **Alasan**: Ini adalah langkah fundamental dalam machine learning untuk mengevaluasi kinerja model secara objektif pada data yang belum pernah dilihat sebelumnya, memastikan model tidak _overfitting_.
+   - **Proses**:
+     1. Membuat data buku yang unik berdasarkan `Book-Title` untuk menghindari duplikasi.
+     2. Menggunakan **TF-IDF (Term Frequency-Inverse Document Frequency) Vectorizer** pada kolom `Book-Author`. Teknik ini mengubah setiap nama penulis menjadi sebuah vektor numerik. TF-IDF memberikan bobot yang lebih tinggi kepada penulis yang lebih jarang muncul di seluruh dataset, menganggapnya sebagai fitur yang lebih distingtif.
+   - **Alasan**:
+     - Komputer tidak dapat memproses teks secara langsung. Vektorisasi menggunakan TF-IDF adalah langkah krusial untuk merepresentasikan fitur konten (penulis) secara matematis.
+     - TF-IDF dipilih karena efektif dalam mengukur pentingnya sebuah "kata" (nama penulis) dalam sebuah "dokumen" (buku) relatif terhadap keseluruhan koleksi buku, sehingga memungkinkan perbandingan kemiripan yang bermakna.
+   - **Potongan Kode Penting**:
+
+   ```python
+   # Persiapan data unik buku
+   books_for_content = df_final.drop_duplicates('Book-Title')[['Book-Title', 'Book-Author']].reset_index(drop=True)
+   # Inisialisasi dan fitting TF-IDF
+   tf_idf = TfidfVectorizer(max_features=5000)
+   tfidf_matrix = tf_idf.fit_transform(books_for_content['Book-Author'].fillna(''))
+   ```
+
+   Hasil dari tahap ini adalah sebuah matriks `tfidf_matrix` yang siap digunakan oleh model Content-Based Filtering untuk menghitung kemiripan.
+
+4. **Persiapan Data untuk Collaborative Filtering**:
+
+   - **Filtering**: Dataset difilter untuk hanya menyertakan pengguna dengan \>10 rating dan buku dengan \>5 rating. Rating implisit (nilai 0) juga dihapus. Langkah ini menghasilkan **168,507** interaksi berkualitas tinggi.
+     - **Alasan**: Langkah ini sangat penting untuk mengurangi masalah _sparsity_ (data yang kosong) dan _noise_. Dengan fokus pada pengguna aktif dan buku yang cukup dikenal, model dapat belajar dari pola preferensi yang lebih kuat dan stabil.
+   - **Encoding**: `User-ID` dan `ISBN` diubah menjadi indeks integer yang berurutan.
+     - **Alasan**: Model _deep learning_, khususnya Embedding Layer di Keras/TensorFlow, memerlukan input berupa indeks integer yang berurutan sebagai kategori, bukan ID asli yang acak.
+   - **Normalisasi**: `Book-Rating` (skala 1-10) dinormalisasi ke rentang [0, 1] menggunakan _Min-Max Scaling_.
+     - **Alasan**: Menyamakan skala variabel target (rating) ke rentang yang kecil (0-1) membantu proses training model agar lebih stabil dan konvergen lebih cepat. Ini adalah praktik standar dalam jaringan saraf tiruan.
+   - **Splitting**: Data dibagi menjadi 80% data latih dan 20% data validasi.
+     - **Alasan**: Ini adalah langkah fundamental dalam machine learning untuk mengevaluasi kinerja model secara objektif pada data yang belum pernah dilihat sebelumnya, memastikan model tidak _overfitting_.
 
 ---
 
@@ -140,19 +161,16 @@ Pada tahap ini, dikembangkan dua model sistem rekomendasi yang berbeda untuk men
 ### **Solusi 1: Content-Based Filtering**
 
 **Cara Kerja & Konteks Proyek:**
-Model ini bekerja berdasarkan prinsip "pengguna akan menyukai item yang mirip dengan item yang mereka sukai di masa lalu". Dalam konteks proyek ini, kemiripan didefinisikan berdasarkan **penulis buku**. Prosesnya adalah sebagai berikut:
+Model ini bekerja berdasarkan prinsip "pengguna akan menyukai item yang mirip dengan item yang mereka sukai di masa lalu". Dalam konteks proyek ini, kemiripan didefinisikan berdasarkan **penulis buku**. Model ini menggunakan matriks TF-IDF dari fitur penulis yang telah disiapkan pada tahap _Data Preparation_. Prosesnya adalah sebagai berikut:
 
-1. Setiap buku direpresentasikan sebagai sebuah vektor berdasarkan penulisnya menggunakan TF-IDF. TF-IDF memberikan bobot yang lebih tinggi kepada penulis yang lebih jarang muncul di seluruh dataset, menganggapnya sebagai fitur yang lebih distingtif.
-2. Ketika pengguna memilih sebuah buku, vektor buku tersebut akan dibandingkan dengan vektor semua buku lainnya menggunakan metrik _Cosine Similarity_.
+1. Ketika pengguna memilih sebuah buku, model akan mencari vektor TF-IDF buku tersebut dari `tfidf_matrix`.
+2. Vektor ini kemudian dibandingkan dengan semua vektor buku lainnya menggunakan metrik **Cosine Similarity** untuk menghitung skor kemiripan.
 3. _Cosine Similarity_ mengukur sudut kosinus antara dua vektor, yang efektif untuk menentukan kemiripan orientasi (dalam hal ini, kesamaan penulis) tanpa terpengaruh oleh panjang vektor.
 4. Buku-buku dengan skor kemiripan tertinggi akan direkomendasikan.
 
 _Potongan kode penting:_
 
 ```python
-# Inisialisasi dan fitting TF-IDF
-tf_idf = TfidfVectorizer(max_features=5000)
-tfidf_matrix = tf_idf.fit_transform(books_for_content['Book-Author'].fillna(''))
 # Hitung cosine similarity (on-the-fly)
 sim_scores = cosine_similarity(book_vector, tfidf_matrix).flatten()
 ```
@@ -160,7 +178,7 @@ sim_scores = cosine_similarity(book_vector, tfidf_matrix).flatten()
 **Kelebihan dan Kekurangan:**
 
 - **Kelebihan**:
-  - Tidak memerlukan data pengguna lain.
+  - Cepat, sederhana, tidak memerlukan data pengguna lain.
   - Dapat merekomendasikan item baru (_item cold-start_) selama fiturnya tersedia.
   - Rekomendasi mudah dijelaskan (misalnya, "direkomendasikan karena penulisnya sama").
 - **Kekurangan**:
@@ -282,15 +300,34 @@ Kedua model memiliki peran yang saling melengkapi. **Content-Based Filtering** s
 
 ## **Evaluation**
 
-### **Metrik Evaluasi: Root Mean Squared Error (RMSE)**
+Pada bagian ini, dilakukan evaluasi kuantitatif untuk kedua model yang telah dikembangkan untuk mengukur performa masing-masing.
+
+### **Evaluasi Model Content-Based Filtering**
+
+Untuk model Content-Based Filtering, metrik yang cocok digunakan adalah **Precision@K**.
+
+- **Definisi**: Precision@K mengukur seberapa banyak item yang relevan dari total item yang direkomendasikan dalam daftar Top-K. Metrik ini sangat cocok untuk mengevaluasi sistem rekomendasi yang menghasilkan daftar terurut.
+- **Formula**:
+  $$Precision@K = \frac{\text{Jumlah item relevan di Top-K}}{K}$$
+- **Cara Kerja**:
+  Metrik ini bekerja dengan cara memeriksa daftar K item teratas yang direkomendasikan oleh sistem. Kemudian, ia menghitung berapa banyak dari item tersebut yang benar-benar "relevan" bagi pengguna. Hasilnya adalah rasio antara jumlah item relevan yang ditemukan dengan K. Sebagai contoh, jika sistem merekomendasikan 10 item (K=10) dan 7 di antaranya dianggap relevan, maka nilai Precision@10 adalah 7/10 atau 0.7.
+- **Konteks dalam Proyek**: Dalam kasus ini, "item relevan" didefinisikan sebagai buku yang ditulis oleh penulis yang sama dengan buku input. Jika kita merekomendasikan 10 buku (K=10) untuk "The Hobbit" karya J.R.R. Tolkien, kita akan mengukur berapa banyak dari 10 buku tersebut yang juga ditulis oleh J.R.R. Tolkien.
+- **Hasil**:
+  - Dengan menggunakan buku "The Hobbit" sebagai input, model memberikan 10 rekomendasi teratas yang semuanya ditulis oleh J.R.R. Tolkien.
+  - **Precision@10 = 10 / 10 = 1.0 (100%)**
+- **Interpretasi**: Skor presisi yang sempurna ini menunjukkan bahwa model bekerja tepat sesuai desainnya: sangat akurat dalam menemukan buku berdasarkan kesamaan penulis. Namun, skor tinggi ini juga menyoroti kelemahannya, yaitu kurangnya keberagaman dalam rekomendasi.
+
+### **Evaluasi Model Collaborative Filtering**
+
+Untuk model Collaborative Filtering yang memprediksi rating, metrik yang digunakan adalah **Root Mean Squared Error (RMSE)**.
 
 - **Definisi**: RMSE adalah metrik standar yang digunakan untuk mengukur rata-rata magnitudo kesalahan antara nilai yang diprediksi oleh model dan nilai aktual. Metrik ini digunakan untuk masalah regresi, termasuk prediksi rating.
 - **Formula**:
   $$RMSE = \sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2}$$
   di mana:
   - $n$ adalah jumlah total data rating.
-  - $y\_i$ adalah rating aktual yang diberikan oleh pengguna.
-  - $\\hat{y}\_i$ adalah rating yang diprediksi oleh model.
+  - $y_i$ adalah rating aktual yang diberikan oleh pengguna.
+  - $\hat{y}_i$ adalah rating yang diprediksi oleh model.
 - **Cara Kerja**: RMSE menghitung selisih antara prediksi dan nilai sebenarnya untuk setiap titik data, mengkuadratkan selisih tersebut (memberi "hukuman" lebih pada kesalahan besar), merata-ratakannya, lalu mengambil akar kuadrat untuk mengembalikan satuan kesalahan ke satuan asli variabel target.
 - **Konteks dalam Proyek**: Dalam proyek ini, RMSE digunakan untuk mengevaluasi seberapa akurat model _Collaborative Filtering_ dalam memprediksi rating buku (pada skala yang telah dinormalisasi [0, 1]). Nilai RMSE yang lebih rendah menunjukkan bahwa prediksi model lebih dekat dengan rating asli yang diberikan pengguna, menandakan performa yang lebih baik.
 
@@ -308,15 +345,15 @@ Hasil metrik akhir model disajikan dalam tabel berikut:
 | Metrik              | Nilai      |
 | :------------------ | :--------- |
 | Training RMSE       | 0.1920     |
-| **Validation RMSE** | **0.2028** |
-| Gap (Val - Train)   | 0.0108     |
+| **Validation RMSE** | **0.2031** |
+| Gap (Val - Train)   | 0.0111     |
 
 _Tabel 5: Hasil Akhir Metrik Model Collaborative Filtering._
 
 **Interpretasi Hasil:**
 
-- Model mencapai **Validation RMSE sebesar 0.2028** pada data yang belum pernah dilihat sebelumnya. Nilai ini berada pada skala rating yang telah dinormalisasi [0, 1], yang berarti rata-rata kesalahan prediksi model sangat kecil.
-- Selisih (_gap_) antara `Validation RMSE` dan `Training RMSE` hanya **0.0108**, yang mengonfirmasi bahwa model memiliki **kemampuan generalisasi yang sangat baik** dan tidak _overfit_.
-- Analisis statistik prediksi pada data validasi menunjukkan bahwa model menghasilkan output yang wajar dan stabil (rata-rata prediksi: 0.6460, std: 0.0803).
+- Model mencapai **Validation RMSE sebesar 0.2031** pada data yang belum pernah dilihat sebelumnya. Nilai ini berada pada skala rating yang telah dinormalisasi [0, 1], yang berarti rata-rata kesalahan prediksi model sangat kecil.
+- Selisih (_gap_) antara `Validation RMSE` dan `Training RMSE` hanya **0.0111**, yang mengonfirmasi bahwa model memiliki **kemampuan generalisasi yang sangat baik** dan tidak _overfit_.
+- Analisis statistik prediksi pada data validasi menunjukkan bahwa model menghasilkan output yang wajar dan stabil (rata-rata prediksi: 0.6457, std: 0.0804).
 
 Kesimpulannya, model _Collaborative Filtering_ yang dibangun sangat akurat dan andal, menjadikannya solusi yang efektif untuk memberikan rekomendasi buku yang dipersonalisasi dan berkualitas tinggi.
